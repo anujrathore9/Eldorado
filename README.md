@@ -27,6 +27,7 @@ A production-ready full-stack web application for detecting money muling pattern
 ## 🚀 Tech Stack
 
 ### Frontend
+
 - **React 18** - UI framework
 - **Vite** - Build tool and dev server
 - **TailwindCSS** - Utility-first CSS framework
@@ -35,6 +36,7 @@ A production-ready full-stack web application for detecting money muling pattern
 - **Graphology** - Graph data structure
 
 ### Backend
+
 - **Node.js** - Runtime environment
 - **Express** - Web framework
 - **MongoDB** - Database (via Mongoose)
@@ -79,21 +81,25 @@ PW-RIFT/
 ## 🔍 Detection Algorithms
 
 ### 1. Circular Fund Routing (Cycles)
+
 **Pattern**: Simple cycles of length 3 to 5 nodes
 
 **Algorithm**: Depth-First Search (DFS) based cycle detection
+
 - Start DFS from each node
 - Track path and detect when path returns to start node
 - Assign same `ring_id` to all accounts in cycle
 
-**Complexity**: O(V * E) where V = vertices, E = edges
+**Complexity**: O(V \* E) where V = vertices, E = edges
 
 **Pattern Name**: `cycle_length_3`, `cycle_length_4`, `cycle_length_5`
 
 ### 2. Fan-In Pattern
+
 **Pattern**: Receiver has ≥10 unique senders within 72-hour window
 
 **Algorithm**:
+
 1. Calculate in-degree for each node
 2. Filter nodes with in-degree ≥ 10
 3. Group transactions by 72-hour time windows
@@ -104,9 +110,11 @@ PW-RIFT/
 **Pattern Name**: `fan_in`
 
 ### 3. Fan-Out Pattern
+
 **Pattern**: Sender sends to ≥10 unique receivers within 72-hour window
 
 **Algorithm**:
+
 1. Calculate out-degree for each node
 2. Filter nodes with out-degree ≥ 10
 3. Group transactions by 72-hour time windows
@@ -117,20 +125,23 @@ PW-RIFT/
 **Pattern Name**: `fan_out`
 
 ### 4. Layered Shell Networks
+
 **Pattern**: Paths of length ≥3 with intermediate nodes having ≤3 total transactions
 
 **Algorithm**:
+
 1. Find all paths of length 3-5 using DFS
 2. Check intermediate nodes have low transaction count
 3. Flag accounts in such paths
 
-**Complexity**: O(V * E^d) where d = max path depth (5)
+**Complexity**: O(V \* E^d) where d = max path depth (5)
 
 **Pattern Name**: `layered_shell`
 
 ## 📊 Scoring System
 
 ### Pattern Weights
+
 - **Cycle (any length)**: 40 points
 - **Fan-In**: 30 points
 - **Fan-Out**: 30 points
@@ -138,17 +149,21 @@ PW-RIFT/
 - **High Velocity Bonus**: +10 points
 
 ### Velocity Scoring
+
 - Calculates transactions per hour
 - Flags accounts with >50 transactions/hour
 - Adds bonus score for high velocity
 
 ### False Positive Control
+
 **Legitimate Merchant Detection**:
+
 - Accounts with high in-degree AND high out-degree
 - Transactions spread across ≥30 days
 - Score reduced by 50% for legitimate merchants
 
 ### Final Score Calculation
+
 ```
 base_score = sum(pattern_weights)
 velocity_bonus = high_velocity ? 10 : 0
@@ -160,17 +175,20 @@ final_score = min(100, (base_score + velocity_bonus) * false_positive_adjustment
 ## 🎁 Bonus Features
 
 ### 1. Betweenness Centrality
+
 - Identifies critical bridge nodes in the network
 - Nodes with high betweenness are key connectors
 - Adds +5 to suspicion score if betweenness > 70
 
 ### 2. PageRank Anomaly Detection
+
 - Calculates PageRank scores for all nodes
 - Detects accounts with high PageRank but low degree
 - Indicates unusual influence patterns
 - Adds +8 to suspicion score for anomalies
 
 ### 3. Transaction Velocity Scoring
+
 - Measures transaction frequency per account
 - Identifies rapid-fire transaction patterns
 - Already integrated in base scoring
@@ -179,6 +197,7 @@ final_score = min(100, (base_score + velocity_bonus) * false_positive_adjustment
 ## 📥 CSV Format
 
 Required columns (exact match):
+
 - `transaction_id` - Unique transaction identifier
 - `sender_id` - Account ID of sender
 - `receiver_id` - Account ID of receiver
@@ -186,6 +205,7 @@ Required columns (exact match):
 - `timestamp` - Transaction timestamp (YYYY-MM-DD HH:MM:SS)
 
 Example:
+
 ```csv
 transaction_id,sender_id,receiver_id,amount,timestamp
 TXN_001,ACC_001,ACC_002,1000.50,2024-01-15 10:30:00
@@ -195,7 +215,8 @@ TXN_002,ACC_002,ACC_003,500.25,2024-01-15 11:45:00
 ## 🚀 Setup & Installation
 
 ### Prerequisites
-- Node.js 18+ 
+
+- Node.js 18+
 - MongoDB (local or Atlas)
 - npm or yarn
 
@@ -231,6 +252,7 @@ npm run dev
 ### Environment Variables
 
 **Backend (.env)**:
+
 ```
 PORT=5000
 MONGODB_URI=mongodb://localhost:27017/money_muling_detection
@@ -238,6 +260,7 @@ NODE_ENV=development
 ```
 
 **Frontend (.env)**:
+
 ```
 VITE_API_URL=http://localhost:5000/api
 ```
@@ -268,27 +291,30 @@ VITE_API_URL=http://localhost:5000/api
 
 ### Complexity Analysis
 
-| Operation | Time Complexity | Space Complexity |
-|-----------|----------------|------------------|
-| Graph Construction | O(E) | O(V + E) |
-| Cycle Detection | O(V * E) | O(V) |
-| Fan-In/Out Detection | O(V + E) | O(V) |
-| Layered Shell | O(V * E^d) | O(V) |
-| Scoring | O(V) | O(V) |
-| **Total** | **O(V * E^d)** | **O(V + E)** |
+| Operation            | Time Complexity | Space Complexity |
+| -------------------- | --------------- | ---------------- |
+| Graph Construction   | O(E)            | O(V + E)         |
+| Cycle Detection      | O(V \* E)       | O(V)             |
+| Fan-In/Out Detection | O(V + E)        | O(V)             |
+| Layered Shell        | O(V \* E^d)     | O(V)             |
+| Scoring              | O(V)            | O(V)             |
+| **Total**            | **O(V \* E^d)** | **O(V + E)**     |
 
 Where:
+
 - V = number of vertices (accounts)
 - E = number of edges (transactions)
 - d = max path depth (5)
 
 ### Performance Targets
+
 - ✅ Handles up to 10,000 transactions
 - ✅ Processing time < 30 seconds
 - ✅ Uses adjacency list for efficient graph operations
 - ✅ Avoids nested O(n²) loops where possible
 
 ### Optimizations
+
 1. **Indexed MongoDB queries** - Fast transaction retrieval
 2. **Adjacency list structure** - O(1) neighbor access
 3. **Early termination** - Stop DFS at max depth
@@ -298,11 +324,13 @@ Where:
 ## 📤 API Endpoints
 
 ### POST `/api/upload`
+
 Upload CSV file and run analysis
 
 **Request**: `multipart/form-data` with `file` field
 
 **Response**:
+
 ```json
 {
   "suspicious_accounts": [...],
@@ -312,14 +340,17 @@ Upload CSV file and run analysis
 ```
 
 ### GET `/api/results`
+
 Get latest analysis results
 
 **Response**: Same as `/api/upload`
 
 ### GET `/api/graph`
+
 Get graph data for visualization
 
 **Response**:
+
 ```json
 {
   "nodes": [...],
@@ -328,11 +359,13 @@ Get graph data for visualization
 ```
 
 ### GET `/health`
+
 Health check endpoint
 
 ## 🎨 Frontend Features
 
 ### Graph Visualization
+
 - **Sigma.js** powered interactive graph
 - **Color coding**: Red = suspicious, Blue = normal
 - **Ring highlighting**: Same border color for ring members
@@ -340,11 +373,13 @@ Health check endpoint
 - **Force-directed layout**: ForceAtlas2 algorithm
 
 ### Fraud Ring Table
+
 - Ring ID, Pattern Type, Member Count
 - Risk Score (color-coded)
 - Member Account IDs (comma-separated)
 
 ### Summary Panel
+
 - Total Accounts Analyzed
 - Suspicious Accounts Flagged
 - Fraud Rings Detected
@@ -392,6 +427,7 @@ Built for hackathon submission.
 ## 🎯 Performance Optimization
 
 The detection system has been optimized to achieve:
+
 - **Precision**: ≥70% (reduced false positives)
 - **Recall**: ≥60% (improved fraud detection)
 
@@ -428,4 +464,4 @@ See `OPTIMIZATION_REPORT.md` for detailed optimization analysis.
 - Advanced visualization filters
 - Export to PDF reports
 - Email alerts for high-risk accounts
->>>>>>> 00a147d (Initial commit)
+  > > > > > > > 00a147d (Initial commit)
